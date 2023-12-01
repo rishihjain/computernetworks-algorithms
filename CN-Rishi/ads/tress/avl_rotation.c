@@ -1,240 +1,223 @@
 #include<stdio.h>
 #include<stdlib.h>
-#include<string.h>
 
-struct node 
+struct Node
 {
-    int data;
-    struct node *left , *right;
-    int height;
+struct Node *left,*right;
+int data;
+int height;
 };
-
-struct node *root = NULL;
-struct node *FindMax (struct node *root)
+struct Node *root = NULL;
+struct Node *FindMax(struct Node *root)
 {
-    while(root->right != NULL)
-    {
-        root = root->right;
-    }
-    return root;
+while (root->right != NULL)
+{
+root = root->right;
+}
+return root;
+}
+struct Node *FindMin(struct Node *root)
+{
+while (root->left != NULL)
+{
+root = root->left;
+}
+return root;
+}
+int Max(int n1, int n2)
+{
+return n1 > n2 ? n1 : n2;
+}
+struct Node *getNewNode(int data)
+{
+struct Node *newNode;
+newNode = (struct Node *)malloc(sizeof(struct Node));
+newNode->data = data;
+newNode->left = NULL;
+newNode->right = NULL;
+newNode->height = 1;
+return newNode;
+}
+int FindHeight(struct Node *root)
+{
+if (root == NULL)
+{
+return 0;
+}
+return root->height;
+}
+int getBalanceFactor(struct Node *root)
+{
+if (root == NULL)
+{
+return 0;
+}
+return (FindHeight(root->left) - FindHeight(root->right));
+}
+struct Node *rightRotate(struct Node *root)
+{
+struct Node *leftChild = root->left;
+struct Node *leftrightChild = leftChild->right;
+leftChild->right = root;
+root->left = leftrightChild;
+root->height = Max(FindHeight(root->left), FindHeight(root->right)) + 1;
+leftChild->height = Max(FindHeight(leftChild->left), FindHeight(leftChild->right)) + 1;
+return leftChild;
 }
 
-struct node *FindMin (struct node *root)
+struct Node *leftRotate(struct Node *root)
 {
-    while (root -> left !=NULL){
-        {
-            root = root->left;
-        }
-        return root;
-    }
+struct Node *rightChild = root->right;
+struct Node *rightLeftChild = rightChild->left;
+rightChild->left = root;
+root->right = rightLeftChild;
+root->height = Max(FindHeight(root->left), FindHeight(root->right)) + 1;
+rightChild->height = Max(FindHeight(rightChild->left), FindHeight(rightChild->right)) + 1;
+return rightChild;
 }
-
-struct node *getnewnode(int data)
+struct Node *insert(struct Node *root, int data)
 {
-    struct node *NewNode;
-    NewNode = (struct node*)malloc(sizeof(struct node));
-    NewNode->data = data;
-    NewNode->right = NULL;
-    NewNode->left = NULL;
-    return NewNode ;
-}
-
-int Max (int n1,int n2)
+if (root == NULL)
 {
-    return n1>n2 ? n1 :n2;
+root = getNewNode(data);
+return root;
 }
-
-int getHeight (struct node *root)
+if (data < root->data)
 {
-    if(root==NULL)
-    {
-        return 0;
-    }
-    return root->height;
+root->left = insert(root->left, data);
 }
-
-int getBalancefactor(struct node *root)
+else if (data > root->data)
 {
-    if(root==NULL)
-    return 0;
-    return getHeight(root->left)- getHeight(root->right);
+root->right = insert(root->right, data);
 }
-
-struct node *rightrotate(struct node *root)
+else
 {
-    // Store pointers to the root's left child and the left child's right child
-    struct node *leftChild = root->left;
-    struct node *leftrightChild = leftChild->right;
-
-    // Perform the right rotation
-    leftChild->right = root;
-    root->left = leftrightChild;
-    
-    root->height = Max(getHeight(root->left),getHeight(root->right))+1;
-    leftChild->height = Max(getHeight(leftChild->left),getHeight(leftChild->right))+1;
-    return leftChild;
+return root;
 }
-
-struct node *leftrotate(struct node *root)
+root->height = Max(FindHeight(root->left), FindHeight(root->right)) + 1;
+int balanceFactor = getBalanceFactor(root);
+if (balanceFactor > 1 && data < root->left->data) // LEFT-LEFT
 {
-    struct node *rightChild = root->right;
-    struct node *rightleftChild = rightChild->left;
-
-    rightChild->left = root;
-    root->right = rightleftChild;
-    root->height=Max(getHeight(root->left),getHeight(root->right))+1;
-    rightChild->height = Max(getHeight(rightChild->left),getHeight(rightChild->right)) + 1;
-    return rightChild;
+return rightRotate(root);
 }
-
-struct node *insert(struct node *root, int data)
+if (balanceFactor < -1 && data > root->right->data) // right-right
 {
-    if(root==NULL)
-    {
-        root= getnewnode(data);
-        return root;
-    }
-    if(data<root->data)
-    {
-        root->left = insert(root->left,data);
-    }
-    if(data>root->data)
-    {
-        root->right = insert(root->right,data);
-    }
-    else{
-        return root;
-    }
-    root->height = Max(getHeight(root->left),getHeight(root->right))+1;
-    int bf = getBalancefactor(root);
-    if(bf>1 && data < root->left->data) //left-left
-    {
-        return rightrotate(root);
-    }
-    if(bf<-1 && data >root->right->data) //right-right
-    {
-        return leftrotate(root);
-    }
-    if(bf>1 && data >root->left->data) //left-right
-    {
-        root->left = leftrotate(root->left);
-        return rightrotate(root);
-    }
-    if(bf<-1 && data<root->right->data) //right-left
-    {
-        root->right = rightrotate(root->right);
-        return leftrotate(root);
-    }
-    return root;
+return leftRotate(root);
 }
-
-struct node *delete(struct node *root , int data)
+if (balanceFactor > 1 && data > root->left->data) // LEFT-right
 {
-    if(root==NULL)
-    {
-        return root;
-    }
-    if(data < root->data)
-    {
-        root->left = delete(root->left , data);
-    }
-    if(data > root->data)
-    {
-        root->right = delete(root->right , data);
-    }
-    else
-    {
-        if(root->left == NULL && root->right == NULL)
-    {
-        free(root);
-        root=NULL;
-        return root;
-    }
-    if(root->left==NULL)
-    {
-        struct node *temp = root;
-        root = root->right;
-        free(temp);
-        return root;
-    }
-    if(root->right==NULL)
-    {
-        struct node *temp = root;
-        root = root->left;
-        free(temp);
-        return root;
-    }
-    struct node *temp = FindMin(root->right);
-    root->data = temp->data;
-    root->right = delete(root->right,temp->data);
-    }
-    root->height = Max(getHeight(root->left),getHeight(root->right))+1;
-    int bf = getBalancefactor(root);
-    if(bf>1 && getBalancefactor(root->left)>=0)  //left-left
-    {
-        return rightrotate(root);
-    }
-    if(bf>1 && getBalancefactor(root->left)<0) // left-right
-    {
-        root->left = leftrotate(root->left);
-        return rightrotate(root);
-    }
-    if(bf<-1 && getBalancefactor(root->right)<=0)  //right-left
-    {
-        root->right = rightrotate(root->right);
-        return leftrotate(root);
-    }
-    if(bf<-1 && getBalancefactor(root->right) >0)  //right-right
-    {
-        return leftrotate(root);
-    }
-    return root;
-    printf("Node deleted");  
+root->left = leftRotate(root->left);
+return rightRotate(root);
 }
-
-int countNodes(struct node *root)
+if (balanceFactor < -1 && data < root->right->data) // right-LEFT
 {
-    if(root==NULL)
-    {
-        return 0;
-    }
-    return countNodes(root->left)+countNodes(root->right)+1;
+root->right = rightRotate(root->right);
+return leftRotate(root);
 }
-
-void search(struct node *root , int data)
+return root;
+}
+struct Node *delete (struct Node *root, int data) // delete node with given data
 {
-    if(root==NULL)
-    {
-        printf("Element not found");
-        return;
-    }
-    if(data == root->data)
-    {
-        return;
-    }
-    if(data<root->data)
-    {
-        search(root->left,data);
-        
-    }
-    else{
-        search(root->right,data);
-       
-    }
-}
-
-void Inorder(struct node *root)
+if (root == NULL)
 {
-    if(root!=NULL)
-    {
-        Inorder(root->left);
-        printf("%d",root->data);
-        Inorder(root->right);
-    }
-
+return root;
 }
-
-void display(struct node *root, int space)
+if (data < root->data)
+{
+root->left = delete (root->left, data);
+}
+else if (data > root->data)
+{
+root->right = delete (root->right, data);
+}
+else
+{
+if (root->left == NULL && root->right == NULL)
+{
+free(root);
+root = NULL;
+return root;
+}
+if (root->left == NULL)
+{
+struct Node *temp = root;
+root = root->right;
+free(temp);
+return root;
+}
+if (root->right == NULL)
+{
+struct Node *temp = root;
+root = root->left;
+free(temp);
+return root;
+}
+struct Node *temp = FindMin(root->right);
+root->data = temp->data;
+root->right = delete (root->right, temp->data);
+}
+root->height = Max(FindHeight(root->left), FindHeight(root->right)) + 1;
+int balanceFactor = getBalanceFactor(root);
+if (balanceFactor > 1 && getBalanceFactor(root->left) >= 0) // LEFT-LEFT
+{
+return rightRotate(root);
+}
+if (balanceFactor > 1 && getBalanceFactor(root->left) < 0) // LEFT-right
+{
+root->left = leftRotate(root->left);
+return rightRotate(root);
+}
+if (balanceFactor < -1 && getBalanceFactor(root->right) <= 0) // right-right
+{
+return leftRotate(root);
+}
+if (balanceFactor < -1 && getBalanceFactor(root->right) > 0) // right-LEFT
+{
+root->right = rightRotate(root->right);
+return leftRotate(root);
+}
+return root;
+printf("Node deleted");
+}
+int countAllNodes(struct Node *root)
+{
+if (root == NULL)
+{
+return 0;
+}
+return 1 + countAllNodes(root->left) + countAllNodes(root->right);
+}
+void search(struct Node *root, int data)
+{
+if (root == NULL)
+{
+printf("Element not found\n");
+return;
+}
+if (data == root->data)
+{
+printf("Element found\n");
+return;
+}
+if (data < root->data)
+{
+search(root->left, data);
+}
+else
+{
+search(root->right, data);
+}
+}
+void InOrder(struct Node *root)
+{
+if (root != NULL)
+{
+InOrder(root->left);
+printf("%d ", root->data);
+InOrder(root->right);
+}
+}
+void display(struct Node *root, int space)
 {
 if (root == NULL)
 {
@@ -250,9 +233,8 @@ printf(" ");
 printf("%d\n", root->data);
 display(root->left, space);
 }
-
 int main(){
-struct node *temp;
+struct Node *temp;
 int data, choice, val, i;
 printf("AVL tree Implementation :\n");
 printf("1.Insert\n");
@@ -285,15 +267,15 @@ scanf("%d", &val);
 search(root, val);
 break;
 case 4:
-printf("Height of the tree is %d\n", getHeight(root));
+printf("Height of the tree is %d\n", FindHeight(root));
 break;
 case 5:
 printf("INORDER: ");
-Inorder(root);
+InOrder(root);
 printf("\n");
 break;
 case 6:
-printf("Total number of nodes in the tree is %d\n", countNodes(root));
+printf("Total number of nodes in the tree is %d\n", countAllNodes(root));
 break;
 case 7:
 display(root, 0);
@@ -306,5 +288,3 @@ printf("Wrong choice\n");
 }
 return 0;
 }
-
-
